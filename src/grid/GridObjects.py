@@ -40,8 +40,16 @@ def getWumpus() -> GridObject:
         if agentObj == None:
             raise KeyError("Missing Parameter: No Agent Object provided.")
         
+        newPos = kwds.get("newPos")
+        if newPos == None:
+            raise KeyError("Missing Parameter: No position provided. (Likely due to an internal argument-passing error)")
+
+        ## move the player to new position
+        agentObj.moveTo(newPos)
+        
         ## un-alive the agent
-        agentObj.alive = False
+        print("GAME OVER: Wumpus ate the Agent. Agent Died.")
+        agentObj.killPlayer()
 
     return GridObject(name="wumpus", func=wumpusFunc)
 
@@ -53,8 +61,16 @@ def getPit() -> GridObject:
         if agentObj == None:
             raise KeyError("Missing Parameter: No Agent Object provided.")
         
+        newPos = kwds.get("newPos")
+        if newPos == None:
+            raise KeyError("Missing Parameter: No position provided. (Likely due to an internal argument-passing error)")
+
+        ## move the player to new position
+        agentObj.moveTo(newPos)
+
         ## un-alive the agent
-        agentObj.alive = False
+        print("GAME OVER: Agent fell into the pit. Agent Died.")
+        agentObj.killPlayer()
 
     return GridObject(name="pit", func=pitFunc)
 
@@ -70,12 +86,8 @@ def getGold() -> GridObject:
         if newPos == None:
             raise KeyError("Missing Parameter: No position provided. (Likely due to an internal argument-passing error)")
         
-        ## update the position  --  should ideally be just one event        TODO: restructure as one function
-        agentObj.pos = newPos
-        agentObj.grid.playerPos = newPos
-
-        ## gold no longer available for collection
-        agentObj.grid[newPos[1]][newPos[0]] = None
+        ## move the player to new position
+        agentObj.moveTo(newPos)
 
     return GridObject(name="gold", func=goldFunc)
 

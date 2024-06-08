@@ -1,10 +1,10 @@
 import getopt
 from grid.Grid import Grid
-from agent.Agent import Agent
+from agent.ManualAgent import ManualAgent
 
 def main(mode: int) -> int:
     grid = Grid((5, 5))
-    player = Agent(grid)
+    player = ManualAgent(grid)
 
     player.hunt()
 

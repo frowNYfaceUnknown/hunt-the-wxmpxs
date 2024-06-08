@@ -9,6 +9,32 @@ class DoA(Enum):        ## DoM -- Direction of Action
     Left    = (-1, 0)
     Down    = (0, -1)
 
+    @classmethod
+    def fromVals(cls, val: tuple[int, int]) -> "DoA":
+
+        if val == (0, 1):
+            return DoA.Up
+        
+        elif val == (1, 0):
+            return DoA.Right
+        
+        elif val == (-1, 0):
+            return DoA.Left
+        
+        elif val == (0, -1):
+            return DoA.Down
+    
+    def __getitem__(self, key: int) -> "DoA":
+        
+        if -1 < key < 2:
+            return self.value[key]
+        
+        else:
+            raise IndexError(f"DoA has only two elements. But {key}th element was tried to access.")
+
+    def __neg__(self) -> "DoA":
+        return DoA.fromVals((-self.value[0], -self.value[1]))
+
 class Percept(Enum):
 
     Nothing = 0
@@ -17,6 +43,9 @@ class Percept(Enum):
     Scream  = 3
     Glitter = 4
     Bump    = 5
+
+    def __str__(self) -> str:
+        return self.name
 
 class Event:
 
@@ -28,16 +57,14 @@ class Event:
         """
         self.subscribers: list[Callable] = []
     
-    def __iadd__(self, other: Callable) -> bool:
+    def __iadd__(self, other: Callable) -> None:
         
-        try:
-            if other.isinstance(Callable):
-                self.subscribers.append(other)
-                return True
-            else:
-                return False
-        except:
-            return False
+        if isinstance(other, Callable):
+            self.subscribers.append(other)
+            return self
+        
+        else:
+            raise TypeError(f"{other} is not a function.")
     
     def __isub__(self, other: Callable) -> bool:
 

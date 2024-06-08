@@ -1,6 +1,6 @@
 import random
-from utils import Event
-from typing import Any, Callable
+from utils import Event, Percept, DoA
+from typing import Literal
 
 from agent import Agent
 from grid import GridObjects
@@ -12,6 +12,7 @@ class Grid:
             self,
             size: tuple[int, int],
             playerPos: tuple[int, int] = (1, 1),
+            playerDir: DoA = DoA.Up,
             wumpi: int = 1,
             pits: int = 2,
             gold: int = 1
@@ -19,13 +20,14 @@ class Grid:
         
         self.size = size
         self.playerPos = playerPos
+        self.playerDir = playerDir
+        self.playerAlive = True
         self.grid: list[list["GridObjects.GridObject"]] = [ [ None for i in range(size[0] + 2) ] for j in range(size[1] + 2) ]    ## so while iterating, you iterate over y first, then x
         
         self.movePlayer = Event()
         self.movePlayer += self._move_player
 
         self._populate_with_GridObjects(wumpi=wumpi, pits=pits, gold=gold)
-        self.disp_grid()
 
     def _populate_with_GridObjects(self, **gameObjDict: int) -> None:
         
@@ -83,8 +85,53 @@ class Grid:
                 newPos = tempPos
             )
         else:
-            self.playerPos = tempPos
-            agentObj.pos = tempPos
+            agentObj.moveTo(tempPos)
+
+    def get_neighbours(self, pos: tuple[int, int]) -> list[GridObjects.GridObject]:
+        
+        returnList: list[GridObjects.GridObject] = []
+
+        try:
+            returnList.append(self.grid[pos[1] - 1][pos[0]])    ## up neighbour
+        except IndexError:
+            pass
+
+        try:
+            returnList.append(self.grid[pos[1] + 1][pos[0]])    ## down neighbour
+        except IndexError:
+            pass
+
+        try:
+            returnList.append(self.grid[pos[1]][pos[0] + 1])    ## right neighbour
+        except IndexError:
+            pass
+
+        try:
+            returnList.append(self.grid[pos[1]][pos[0] - 1])    ## left neighbour
+        except IndexError:
+            pass
+
+        return returnList
+
+    def perceive(self, pos: tuple[int, int]) -> list[Percept]:
+        
+        percepts = []
+        if self.grid[pos[1]][pos[0]] != None and self.grid[pos[1]][pos[0]].name == "gold":
+            percepts.append(Percept.Glitter)
+        
+        neighbours = self.get_neighbours(pos)
+        for n in [ne for ne in neighbours if ne != None]:
+            
+            if n.name == "wumpus":
+                percepts.append(Percept.Stench)
+            
+            if n.name == "pit":
+                percepts.append(Percept.Breeze)
+        
+        if percepts == []:
+            return [Percept.Nothing]
+        else:
+            return percepts
 
     def disp_grid(self) -> None:
 
@@ -101,7 +148,17 @@ class Grid:
                 if str(self.grid[y][x]) == "wall":
                     info = "#"
                 if (x, y) == self.playerPos:
-                    info += "Pl"
+                    if not self.playerAlive:
+                        info += "X"
+                    elif self.playerDir == DoA.Up:
+                        info += "∧"
+                    elif self.playerDir == DoA.Right:
+                        info += ">"
+                    elif self.playerDir == DoA.Down:
+                        info += "∨"
+                    elif self.playerDir == DoA.Left:
+                        info += "<"
+                    
                 x = int(((5 - len(info))/2))
                 print("|" + " " * x + info + " " * (5 - x - len(info)), end="")
             print("|")

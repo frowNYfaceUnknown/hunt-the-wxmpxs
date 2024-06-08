@@ -9,22 +9,118 @@ class Agent:
         
         self.grid = parentGrid
         self.pos = self.grid.playerPos
-        self.isPerceiving = Percept.Nothing
-        self.alive = True
+        self.entryPos = self.grid.playerPos
+        self.dir = DoA.Up
+        self.isPerceiving = [Percept.Nothing]
+        self.isAlive = True
+        self.hasExited = False
 
         self.perceive()     ## perceive the initial position
     
-    def perceive(self) -> Percept:          ##                                  TODO: implement perception   [!!!]
+    def perceive(self) -> Percept:
+        
+        self.isPerceiving = self.grid.perceive(self.pos)
+
+    def decipher_input(self, inp: str):
+        
+        if inp == "w":
+            self.move()
+        
+        elif inp == "a":
+            self.rotate(reverse=True)
+        
+        elif inp == "s":
+            self.move(reverse=True)
+        
+        elif inp == "d":
+            self.rotate()
+        
+        elif inp == "e":
+            self.shoot()
+        
+        elif inp == "q":
+            self.exit()
+        
+        elif inp == "H":
+            print()
+        
+        else:
+            print("Invalid input. Try H for Help.\n\nCustom Inputs can be configured via running utils.\n\n\tpy utils.py --customise_inps")    ## TODO: 
+
+    def disp_perception(self):
+        
+        print("The agent perceives: ", end="")
+        for idx in range(len(self.isPerceiving)):
+            if idx != len(self.isPerceiving) - 1:
+                print(self.isPerceiving[idx], end=", ")
+            else:
+                print(self.isPerceiving[idx])
+
+    def move(self, reverse = False) -> None:       ## dom -- direction of movement
+
+        if reverse == True:
+            
+            self.grid.movePlayer(
+                dom = -self.dir,
+                agentObj = self
+            )
+        
+        else:
+
+            self.grid.movePlayer(
+                dom = self.dir,
+                agentObj = self
+            )
+    
+    def moveTo(self, pos: tuple[int, int]) -> None:
+
+        self.pos = pos
+        self.grid.playerPos = pos
+
+    def rotate(self, reverse: DoA = False) -> None:
+
+        if reverse == True:
+
+            if self.dir == DoA.Up:
+                self.rotateTo(DoA.Left)
+            
+            elif self.dir == DoA.Left:
+                self.rotateTo(DoA.Down)
+            
+            elif self.dir == DoA.Down:
+                self.rotateTo(DoA.Right)
+            
+            elif self.dir == DoA.Right:
+                self.rotateTo(DoA.Up)
+        
+        else:
+
+            if self.dir == DoA.Up:
+                self.rotateTo(DoA.Right)
+            
+            elif self.dir == DoA.Right:
+                self.rotateTo(DoA.Down)
+            
+            elif self.dir == DoA.Down:
+                self.rotateTo(DoA.Left)
+            
+            elif self.dir == DoA.Left:
+                self.rotateTo(DoA.Up)
+    
+    def rotateTo(self, newDir: DoA) -> None:
+
+        self.dir = newDir
+        self.grid.playerDir = newDir
+
+    def shoot(self, dos: DoA) -> None:      ## dos -- direction of shooting     TODO: implement shooting     [!!]
         pass
 
-    def move(self, dom: DoA) -> None:       ## dom -- direction of movement
+    def killPlayer(self) -> None:
 
-        self.grid.movePlayer(
-            dom = dom,
-            agentObj = self
-        )
-    
-    def shoot(self, dos: DoA) -> None:      ## dos -- direction of shooting     TODO: implement shooting     [!!]
+        self.isAlive = False
+        self.grid.playerAlive = False
+
+    def exit(self):
         pass
 
     def hunt(self) -> None:
